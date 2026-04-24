@@ -1,0 +1,408 @@
+{% extends "base.html" %}
+{% block title %}{{ note.title }}{% endblock %}
+{% block extra_css %}
+<style>
+.detail-grid { display: grid; grid-template-columns: 1fr 320px; gap: 2rem; padding: 2rem 0; }
+.detail-main {}
+.detail-sidebar { display: flex; flex-direction: column; gap: 1.25rem; }
+
+.note-header {
+  background: var(--card-bg); backdrop-filter: blur(20px);
+  border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 2rem; margin-bottom: 1.5rem;
+  position: relative; overflow: hidden;
+}
+.note-header::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  background: linear-gradient(90deg, var(--accent), var(--pink));
+}
+.note-header-title {
+  font-family: var(--font-head); font-size: 1.75rem; font-weight: 800;
+  letter-spacing: -.02em; margin: .75rem 0;
+}
+.note-meta-row {
+  display: flex; flex-wrap: wrap; gap: .5rem .8rem;
+  font-size: .8rem; color: var(--text2); margin-bottom: 1.25rem;
+}
+.note-meta-row span { display: flex; align-items: center; gap: .35rem; }
+.action-grid { display: flex; gap: .75rem; flex-wrap: wrap; }
+
+/* PDF Viewer */
+.pdf-viewer-card {
+  background: var(--card-bg); backdrop-filter: blur(16px);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  overflow: hidden; margin-bottom: 1.5rem;
+}
+.pdf-viewer-header {
+  padding: .75rem 1.25rem; border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: .85rem; font-weight: 600;
+}
+.pdf-frame { width: 100%; height: 520px; border: none; background: #1a1a2e; display: block; }
+.pdf-locked {
+  height: 260px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: .75rem;
+  color: var(--text3); background: var(--surface);
+}
+
+/* Share card */
+.share-card {
+  background: var(--card-bg); backdrop-filter: blur(16px);
+  border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem;
+}
+.share-title { font-family: var(--font-head); font-size: .95rem; font-weight: 700; margin-bottom: .9rem; display: flex; align-items: center; gap: .5rem; }
+.share-url {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: .55rem .85rem;
+  font-size: .75rem; color: var(--text2); word-break: break-all;
+  margin-bottom: .75rem; cursor: pointer;
+  transition: border-color .2s;
+}
+.share-url:hover { border-color: var(--accent); }
+.share-btns { display: flex; gap: .5rem; flex-wrap: wrap; }
+.share-btn {
+  display: inline-flex; align-items: center; gap: .35rem;
+  padding: .42rem .85rem; border-radius: 99px; font-size: .78rem; font-weight: 600;
+  border: none; cursor: pointer; transition: all .2s; font-family: inherit;
+}
+.share-whatsapp { background: rgba(37,211,102,.15); color: #25D366; }
+.share-whatsapp:hover { background: rgba(37,211,102,.25); }
+.share-telegram { background: rgba(0,136,204,.15); color: #0088CC; }
+.share-telegram:hover { background: rgba(0,136,204,.25); }
+.share-email { background: rgba(124,111,255,.15); color: var(--accent2); }
+.share-email:hover { background: rgba(124,111,255,.25); }
+.share-copy { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
+.share-copy:hover { background: var(--surface3); }
+
+/* Related */
+.related-note {
+  display: flex; gap: .75rem; padding: .75rem;
+  border-radius: var(--radius-sm); text-decoration: none;
+  transition: background .2s;
+}
+.related-note:hover { background: var(--surface2); }
+.related-icon {
+  width: 36px; height: 36px; border-radius: 8px;
+  background: rgba(124,111,255,.15); display: flex; align-items: center;
+  justify-content: center; color: var(--accent2); font-size: .9rem; flex-shrink: 0;
+}
+.related-info { flex: 1; min-width: 0; }
+.related-title { font-size: .82rem; font-weight: 600; color: var(--text); line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.related-meta { font-size: .72rem; color: var(--text3); margin-top: .15rem; }
+
+/* Tags */
+.tag-chip {
+  display: inline-flex; align-items: center; gap: .3rem;
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text2); padding: .25rem .7rem; border-radius: 99px;
+  font-size: .75rem; text-decoration: none; transition: all .2s;
+}
+.tag-chip:hover { border-color: var(--accent); color: var(--accent2); }
+
+/* AI Assistant */
+.ai-section {
+  background: var(--card-bg); backdrop-filter: blur(16px);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 1.5rem; margin-top: 1.5rem;
+}
+.ai-header { display: flex; align-items: center; gap: .6rem; margin-bottom: 1rem; }
+.ai-header h3 { font-family: var(--font-head); font-size: 1rem; font-weight: 700; }
+.ai-bubble {
+  background: linear-gradient(135deg, rgba(124,111,255,.1), rgba(244,114,182,.08));
+  border: 1px solid rgba(124,111,255,.2);
+  border-radius: var(--radius-sm); padding: 1rem;
+  font-size: .875rem; color: var(--text); line-height: 1.7;
+  margin-top: .75rem; white-space: pre-wrap; display: none;
+}
+.ai-loading { display: none; align-items: center; gap: .5rem; color: var(--text2); font-size: .85rem; margin-top: .75rem; }
+.ai-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: aiDot 1.2s infinite; }
+.ai-dot:nth-child(2) { animation-delay: .2s; }
+.ai-dot:nth-child(3) { animation-delay: .4s; }
+@keyframes aiDot { 0%,100%{opacity:.3;transform:scale(.8)} 50%{opacity:1;transform:scale(1.2)} }
+
+@media(max-width:900px) { .detail-grid { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div style="padding-top:1.5rem;margin-bottom:.5rem">
+    <a href="/explore" style="color:var(--text3);font-size:.85rem;display:inline-flex;align-items:center;gap:.4rem">
+      <i class="fas fa-arrow-left fa-xs"></i> Back to Explore
+    </a>
+  </div>
+
+  <div class="detail-grid">
+    <!-- Main Column -->
+    <div class="detail-main">
+      <!-- Note Header -->
+      <div class="note-header">
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+          <span class="badge badge-purple">{{ note.subject }}</span>
+          <span class="badge badge-gray"><i class="fas fa-file-pdf" style="color:var(--red)"></i> PDF</span>
+          <span class="badge badge-gray"><i class="fas fa-hdd"></i> {{ note.file_size|human_size }}</span>
+        </div>
+        <h1 class="note-header-title">{{ note.title }}</h1>
+        {% if note.description %}
+          <p style="color:var(--text2);font-size:.9rem;margin-bottom:1rem;">{{ note.description }}</p>
+        {% endif %}
+        {% if tags %}
+          <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1rem">
+            {% for tag in tags %}
+              <a href="/explore?q={{ tag|urlencode }}" class="tag-chip"><i class="fas fa-hashtag fa-xs"></i>{{ tag }}</a>
+            {% endfor %}
+          </div>
+        {% endif %}
+        <div class="note-meta-row">
+          <span>
+            <div class="avatar-xs" style="background:{{ note.avatar_color }}">{{ note.author[0] }}</div>
+            <strong>{{ note.author }}</strong>
+          </span>
+          <span><i class="fas fa-calendar-alt"></i> {{ note.created[:10] }}</span>
+          <span><i class="fas fa-download"></i> {{ note.downloads }} downloads</span>
+          <span><i class="fas fa-eye"></i> {{ note.views }} views</span>
+        </div>
+        <div class="action-grid">
+          {% if current_user %}
+            <a href="/download/{{ note.id }}" class="btn btn-primary">
+              <i class="fas fa-download"></i> Download PDF
+            </a>
+            <button class="btn btn-ghost bookmark-btn {% if bookmarked %}saved{% endif %}"
+                    onclick="toggleBookmark(this, {{ note.id }})" id="bookmarkBtn">
+              <i class="{% if bookmarked %}fas{% else %}far{% endif %} fa-bookmark"></i>
+              {% if bookmarked %}Saved{% else %}Save{% endif %}
+            </button>
+            {% if current_user.id == note.user_id or current_user.role == 'admin' %}
+              <form method="POST" action="/note/delete/{{ note.id }}" style="display:inline"
+                    onsubmit="return confirm('Delete this note permanently?')">
+                <button type="submit" class="btn btn-danger">
+                  <i class="fas fa-trash"></i> Delete
+                </button>
+              </form>
+            {% endif %}
+          {% else %}
+            <a href="/login" class="btn btn-primary">
+              <i class="fas fa-lock"></i> Login to Download
+            </a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- PDF Viewer -->
+      <div class="pdf-viewer-card">
+        <div class="pdf-viewer-header">
+          <span><i class="fas fa-file-pdf" style="color:var(--red)"></i> {{ note.original_name }}</span>
+          {% if current_user %}
+            <a href="/view/{{ note.id }}" target="_blank" class="btn btn-ghost btn-sm">
+              <i class="fas fa-external-link-alt fa-xs"></i> Open Full
+            </a>
+          {% endif %}
+        </div>
+        {% if current_user %}
+          <iframe class="pdf-frame" src="/view/{{ note.id }}" title="{{ note.title }}"></iframe>
+        {% else %}
+          <div class="pdf-locked">
+            <i class="fas fa-lock" style="font-size:2.5rem;color:var(--accent)"></i>
+            <p style="font-weight:600;color:var(--text2)">Login to preview the PDF</p>
+            <a href="/login" class="btn btn-primary btn-sm">Sign In</a>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- AI Assistant -->
+      {% if current_user %}
+      <div class="ai-section" id="ai-assistant">
+        <div class="ai-header">
+          <span style="font-size:1.5rem">🤖</span>
+          <h3>AI Study Assistant</h3>
+          <span class="badge badge-purple" style="margin-left:auto">Powered by Claude</span>
+        </div>
+        <p style="font-size:.85rem;color:var(--text2);margin-bottom:.75rem">
+          Ask any question about <strong>{{ note.subject }}</strong> or this topic:
+        </p>
+        <div style="display:flex;gap:.5rem">
+          <input type="text" id="aiQuestion" class="form-control" style="flex:1"
+                 placeholder="e.g. Explain {{ note.title[:30] }}..."
+                 value="{{ note.subject }} - {{ note.title[:40] }}"
+                 onkeydown="if(event.key==='Enter')askAI()"/>
+          <button class="btn btn-primary" onclick="askAI()">
+            <i class="fas fa-paper-plane"></i> Ask
+          </button>
+        </div>
+        <div class="ai-loading" id="aiLoading">
+          <div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div>
+          <span>Thinking...</span>
+        </div>
+        <div class="ai-bubble" id="aiAnswer"></div>
+
+        <!-- YouTube Recommendations -->
+        <div style="margin-top:1.25rem">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+            <span style="font-size:.85rem;font-weight:600;display:flex;align-items:center;gap:.4rem">
+              <i class="fab fa-youtube" style="color:#FF0000"></i> Related Videos
+            </span>
+            <button class="btn btn-ghost btn-sm" onclick="loadVideos('{{ note.subject }} {{ note.title[:25] }}')">
+              <i class="fas fa-sync-alt fa-xs"></i> Load
+            </button>
+          </div>
+          <div id="ytGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.75rem"></div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="detail-sidebar">
+      <!-- Share Card -->
+      <div class="share-card">
+        <div class="share-title"><i class="fas fa-share-alt" style="color:var(--accent)"></i> Share Note</div>
+        <div class="share-url" onclick="copyLink()" title="Click to copy">
+          {{ share_url }}
+        </div>
+        <div class="share-btns">
+          <button class="share-btn share-whatsapp"
+                  onclick="window.open('https://wa.me/?text={{ (note.title + ' - ' + share_url)|urlencode }}','_blank')">
+            <i class="fab fa-whatsapp"></i> WhatsApp
+          </button>
+          <button class="share-btn share-telegram"
+                  onclick="window.open('https://t.me/share/url?url={{ share_url|urlencode }}&text={{ note.title|urlencode }}','_blank')">
+            <i class="fab fa-telegram-plane"></i> Telegram
+          </button>
+          <button class="share-btn share-email"
+                  onclick="window.open('mailto:?subject={{ note.title|urlencode }}&body={{ share_url|urlencode }}','_blank')">
+            <i class="fas fa-envelope"></i> Email
+          </button>
+          <button class="share-btn share-copy" onclick="copyLink()">
+            <i class="fas fa-copy"></i> Copy Link
+          </button>
+        </div>
+      </div>
+
+      <!-- Note Info -->
+      <div class="share-card">
+        <div class="share-title"><i class="fas fa-info-circle" style="color:var(--accent)"></i> Note Info</div>
+        <div style="display:flex;flex-direction:column;gap:.6rem;font-size:.83rem;color:var(--text2)">
+          <div style="display:flex;justify-content:space-between">
+            <span>Subject</span><span style="color:var(--text);font-weight:600">{{ note.subject }}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between">
+            <span>Format</span><span style="color:var(--red);font-weight:600">PDF</span>
+          </div>
+          <div style="display:flex;justify-content:space-between">
+            <span>Size</span><span style="color:var(--text);font-weight:600">{{ note.file_size|human_size }}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between">
+            <span>Uploaded</span><span style="color:var(--text);font-weight:600">{{ note.created[:10] }}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between">
+            <span>Downloads</span><span style="color:var(--teal);font-weight:600">{{ note.downloads }}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between">
+            <span>Views</span><span style="color:var(--accent2);font-weight:600">{{ note.views }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Uploader -->
+      <div class="share-card">
+        <div class="share-title"><i class="fas fa-user-circle" style="color:var(--accent)"></i> Uploaded by</div>
+        <div style="display:flex;align-items:center;gap:.75rem">
+          <div style="width:44px;height:44px;border-radius:50%;background:{{ note.avatar_color }};display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;color:#fff;flex-shrink:0">
+            {{ note.author[0] }}
+          </div>
+          <div>
+            <div style="font-weight:700;font-size:.9rem">{{ note.author }}</div>
+            {% if note.bio %}<div style="font-size:.78rem;color:var(--text2)">{{ note.bio }}</div>{% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Related Notes -->
+      {% if related %}
+      <div class="share-card">
+        <div class="share-title"><i class="fas fa-layer-group" style="color:var(--accent)"></i> Related Notes</div>
+        {% for r in related %}
+          <a href="/note/{{ r.id }}" class="related-note">
+            <div class="related-icon"><i class="fas fa-file-pdf"></i></div>
+            <div class="related-info">
+              <div class="related-title">{{ r.title }}</div>
+              <div class="related-meta">{{ r.author }} · {{ r.downloads }} downloads</div>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </aside>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyLink() {
+  navigator.clipboard.writeText('{{ share_url }}').then(() => showToast('Link copied!', 'success'));
+}
+
+/* Bookmark override for this page to update button text */
+const origToggle = window.toggleBookmark;
+window.toggleBookmark = function(btn, noteId) {
+  fetch(`/bookmark/${noteId}`, {method:'POST'})
+    .then(r => r.json())
+    .then(d => {
+      d.saved ? btn.classList.add('saved') : btn.classList.remove('saved');
+      btn.querySelector('i').className = d.saved ? 'fas fa-bookmark' : 'far fa-bookmark';
+      btn.childNodes[btn.childNodes.length-1].textContent = d.saved ? ' Saved' : ' Save';
+      showToast(d.saved ? 'Bookmarked!' : 'Bookmark removed', 'success');
+    });
+};
+
+/* AI Assistant */
+function askAI() {
+  const q = document.getElementById('aiQuestion').value.trim();
+  if (!q) return;
+  document.getElementById('aiLoading').style.display = 'flex';
+  document.getElementById('aiAnswer').style.display = 'none';
+  fetch('/api/ai-answer', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({question: q})
+  })
+  .then(r => r.json())
+  .then(d => {
+    document.getElementById('aiLoading').style.display = 'none';
+    const box = document.getElementById('aiAnswer');
+    box.textContent = d.answer || d.error || 'No answer.';
+    box.style.display = 'block';
+  })
+  .catch(() => {
+    document.getElementById('aiLoading').style.display = 'none';
+    showToast('Failed to get AI answer.', 'danger');
+  });
+}
+
+/* YouTube */
+function loadVideos(query) {
+  const grid = document.getElementById('ytGrid');
+  grid.innerHTML = '<div style="color:var(--text3);font-size:.82rem;padding:.5rem">Loading...</div>';
+  fetch('/api/youtube', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({query: query || '{{ note.subject }}'})
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (!d.videos || !d.videos.length) { grid.innerHTML = '<div style="color:var(--text3);font-size:.82rem">No videos found.</div>'; return; }
+    grid.innerHTML = d.videos.map(v => `
+      <a href="${v.url}" target="_blank" rel="noopener"
+         style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;display:block;transition:all .2s;text-decoration:none"
+         class="glass-hover">
+        <img src="${v.thumb}" alt="" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block"/>
+        <div style="padding:.6rem">
+          <div style="font-size:.78rem;font-weight:600;color:var(--text);line-height:1.3;margin-bottom:.2rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${v.title}</div>
+          <div style="font-size:.7rem;color:var(--text3)">${v.channel}</div>
+        </div>
+      </a>`).join('');
+  });
+}
+</script>
+{% endblock %}

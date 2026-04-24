@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% block title %}Explore Notes{% endblock %}
+{% block extra_css %}
+<style>
+.explore-layout{display:grid;grid-template-columns:240px 1fr;gap:2rem;align-items:start;padding:2rem 0}
+.sidebar{background:var(--card-bg);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;position:sticky;top:80px}
+.sidebar-title{font-family:var(--font-head);font-size:.9rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);margin-bottom:1rem}
+.filter-item{display:flex;align-items:center;gap:.6rem;padding:.5rem .75rem;border-radius:var(--radius-sm);font-size:.875rem;color:var(--text2);cursor:pointer;transition:all .2s;text-decoration:none}
+.filter-item:hover{background:var(--surface2);color:var(--text)}
+.filter-item.active{background:rgba(124,111,255,.12);color:var(--accent2);font-weight:600}
+.search-wrap{position:relative;margin-bottom:1.5rem}
+.search-input{width:100%;padding:.8rem 1rem .8rem 2.8rem;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:.9rem;outline:none;font-family:inherit;transition:border-color .2s,box-shadow .2s}
+.search-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,111,255,.12)}
+.search-input::placeholder{color:var(--text3)}
+.search-icon{position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none}
+.search-suggestions{position:absolute;top:100%;left:0;right:0;z-index:50;background:var(--card-bg);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:var(--radius-sm);margin-top:4px;overflow:hidden}
+.suggest-item{padding:.7rem 1rem;font-size:.875rem;cursor:pointer;color:var(--text2);transition:background .15s}
+.suggest-item:hover{background:var(--surface2);color:var(--text)}
+.sort-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.5rem}
+.sort-chip{padding:.4rem .9rem;border-radius:99px;font-size:.8rem;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text2);transition:all .2s;text-decoration:none}
+.sort-chip.active,.sort-chip:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+.results-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;font-size:.875rem;color:var(--text2)}
+.pagination{display:flex;gap:.4rem;justify-content:center;margin-top:2.5rem}
+.page-btn{width:36px;height:36px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-size:.85rem;text-decoration:none;transition:all .2s}
+.page-btn.active,.page-btn:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+@media(max-width:900px){.explore-layout{grid-template-columns:1fr}.sidebar{position:static;display:none}.sidebar.show{display:block}}
+.filter-toggle{display:none;align-items:center;gap:.5rem;margin-bottom:1rem}
+@media(max-width:900px){.filter-toggle{display:flex}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="page-hero" style="padding-top:2.5rem">
+    <div class="section-label">Explore Notes</div>
+    <h1 class="page-title">Find Your Perfect <span class="gradient-text">Study Notes</span></h1>
+    <p class="page-sub">{{ total }} notes across all subjects</p>
+  </div>
+
+  <!-- Search Bar -->
+  <form method="GET" action="/explore" id="exploreForm">
+    <div class="search-wrap" style="max-width:600px;margin:0 auto 1.5rem">
+      <i class="fas fa-search search-icon"></i>
+      <input type="text" name="q" id="searchQ" class="search-input" placeholder="Search by title, subject, keyword..."
+             value="{{ q }}" autocomplete="off"/>
+      <div class="search-suggestions" id="suggestions" style="display:none"></div>
+    </div>
+  </form>
+
+  <div class="explore-layout">
+    <!-- Sidebar Filters -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-title">Subjects</div>
+      <a href="/explore?q={{ q }}&sort={{ sort }}" class="filter-item {% if not subject %}active{% endif %}">
+        📚 All Subjects
+      </a>
+      {% for s in subjects %}
+        <a href="/explore?q={{ q }}&subject={{ s.name|urlencode }}&sort={{ sort }}"
+           class="filter-item {% if s.name == subject %}active{% endif %}">
+          {{ s.icon }} {{ s.name }}
+        </a>
+      {% endfor %}
+    </aside>
+
+    <!-- Main Content -->
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.75rem;margin-bottom:1.25rem">
+        <div class="sort-row">
+          <a href="/explore?q={{ q }}&subject={{ subject }}&sort=newest" class="sort-chip {% if sort=='newest' %}active{% endif %}">✨ Newest</a>
+          <a href="/explore?q={{ q }}&subject={{ subject }}&sort=popular" class="sort-chip {% if sort=='popular' %}active{% endif %}">🔥 Popular</a>
+          <a href="/explore?q={{ q }}&subject={{ subject }}&sort=az" class="sort-chip {% if sort=='az' %}active{% endif %}">🔤 A–Z</a>
+        </div>
+        <button class="btn btn-ghost btn-sm filter-toggle" onclick="document.getElementById('sidebar').classList.toggle('show')">
+          <i class="fas fa-filter"></i> Filters
+        </button>
+      </div>
+
+      <div class="results-header">
+        <span>
+          {% if q or subject %}
+            Showing <strong>{{ total }}</strong> results
+            {% if q %} for "<strong>{{ q }}</strong>"{% endif %}
+            {% if subject %} in <strong>{{ subject }}</strong>{% endif %}
+          {% else %}
+            <strong>{{ total }}</strong> notes total
+          {% endif %}
+        </span>
+        {% if q or subject %}
+          <a href="/explore" style="color:var(--text3);font-size:.8rem"><i class="fas fa-times"></i> Clear filters</a>
+        {% endif %}
+      </div>
+
+      {% if notes %}
+      <div class="grid-3">
+        {% for note in notes %}
+        <div class="note-card glass-hover">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem">
+            <span class="badge badge-purple">{{ note.subject[:16] }}</span>
+            <button class="bookmark-btn {% if note.id in bm_ids %}saved{% endif %}"
+                    onclick="{% if current_user %}toggleBookmark(this,{{ note.id }}){% else %}location='/login'{% endif %}"
+                    title="Bookmark">
+              <i class="{% if note.id in bm_ids %}fas{% else %}far{% endif %} fa-bookmark"></i>
+            </button>
+          </div>
+          <a href="/note/{{ note.id }}" class="note-card-title">{{ note.title }}</a>
+          {% if note.description %}<p class="note-card-desc">{{ note.description }}</p>{% endif %}
+          <div class="note-card-meta">
+            <span><div class="avatar-xs" style="background:{{ note.avatar_color }}">{{ note.author[0] }}</div> {{ note.author }}</span>
+            <span><i class="fas fa-download"></i> {{ note.downloads }}</span>
+            <span><i class="fas fa-eye"></i> {{ note.views }}</span>
+            <span style="color:var(--text3)">{{ note.created|time_ago }}</span>
+          </div>
+          <div class="note-card-footer">
+            <a href="/note/{{ note.id }}" class="btn btn-primary btn-sm" style="flex:1;justify-content:center">View</a>
+            {% if current_user %}
+              <a href="/download/{{ note.id }}" class="btn btn-ghost btn-icon" title="Download"><i class="fas fa-download"></i></a>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Pagination -->
+      {% if pages > 1 %}
+      <div class="pagination">
+        {% if page > 1 %}
+          <a href="/explore?q={{ q }}&subject={{ subject }}&sort={{ sort }}&page={{ page-1 }}" class="page-btn"><i class="fas fa-chevron-left fa-xs"></i></a>
+        {% endif %}
+        {% for p in range(1, pages+1) %}
+          {% if p == page or (p >= page-2 and p <= page+2) or p == 1 or p == pages %}
+            <a href="/explore?q={{ q }}&subject={{ subject }}&sort={{ sort }}&page={{ p }}"
+               class="page-btn {% if p == page %}active{% endif %}">{{ p }}</a>
+          {% elif p == page-3 or p == page+3 %}
+            <span class="page-btn" style="cursor:default">…</span>
+          {% endif %}
+        {% endfor %}
+        {% if page < pages %}
+          <a href="/explore?q={{ q }}&subject={{ subject }}&sort={{ sort }}&page={{ page+1 }}" class="page-btn"><i class="fas fa-chevron-right fa-xs"></i></a>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      {% else %}
+      <div style="text-align:center;padding:4rem;color:var(--text3)">
+        <i class="fas fa-search" style="font-size:3rem;opacity:.3;display:block;margin-bottom:1rem"></i>
+        <h3 style="font-family:var(--font-head);font-size:1.3rem;margin-bottom:.5rem;color:var(--text2)">No notes found</h3>
+        <p>Try different keywords or <a href="/upload" style="color:var(--accent2)">upload new notes</a>.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* Search suggestions */
+let suggestTimer;
+const sq = document.getElementById('searchQ');
+const sbox = document.getElementById('suggestions');
+sq.addEventListener('input', () => {
+  clearTimeout(suggestTimer);
+  const v = sq.value.trim();
+  if (v.length < 2) { sbox.style.display = 'none'; return; }
+  suggestTimer = setTimeout(() => {
+    fetch(`/api/search-suggest?q=${encodeURIComponent(v)}`)
+      .then(r => r.json())
+      .then(items => {
+        if (!items.length) { sbox.style.display = 'none'; return; }
+        sbox.innerHTML = items.map(i =>
+          `<div class="suggest-item" onclick="sq.value='${i.replace(/'/g,"\\'")}';sbox.style.display='none';document.getElementById('exploreForm').submit()">${i}</div>`
+        ).join('');
+        sbox.style.display = 'block';
+      });
+  }, 200);
+});
+document.addEventListener('click', e => { if (!e.target.closest('.search-wrap')) sbox.style.display='none'; });
+</script>
+{% endblock %}

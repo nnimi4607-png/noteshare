@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% block title %}Admin Panel{% endblock %}
+{% block extra_css %}
+<style>
+.admin-wrap { max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem; }
+.admin-header { margin-bottom: 2rem; }
+.admin-header h1 { font-family: var(--font-head); font-size: 2rem; font-weight: 800; display: flex; align-items: center; gap: .5rem; }
+.admin-header p { color: var(--text2); }
+.stat-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 1rem; margin-bottom: 2rem; }
+.stat-tile {
+  background: var(--card-bg); backdrop-filter: blur(16px);
+  border: 1px solid var(--border); border-radius: var(--radius); padding: 1.4rem; text-align: center;
+}
+.stat-tile-val { font-family: var(--font-head); font-size: 2.2rem; font-weight: 800; background: linear-gradient(135deg,var(--accent),var(--pink)); -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
+.stat-tile-lbl { font-size: .75rem; color: var(--text2); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; margin-top: .25rem; }
+.tabs { display: flex; gap: .4rem; margin-bottom: 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: 99px; padding: .3rem; width: fit-content; }
+.tab-btn { padding: .5rem 1.25rem; border-radius: 99px; border: none; background: transparent; font-size: .85rem; font-weight: 600; cursor: pointer; color: var(--text2); font-family: inherit; transition: all .2s; }
+.tab-btn.active { background: var(--accent); color: #fff; }
+.tab-content { display: none; animation: pageFade .3s var(--ease); }
+.tab-content.active { display: block; }
+.admin-table { width: 100%; border-collapse: collapse; }
+.admin-table th { padding: .7rem 1rem; text-align: left; font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--text3); border-bottom: 1px solid var(--border); background: var(--surface); font-weight: 600; }
+.admin-table td { padding: .8rem 1rem; border-bottom: 1px solid var(--border); font-size: .855rem; vertical-align: middle; }
+.admin-table tr:last-child td { border-bottom: none; }
+.admin-table tr:hover td { background: var(--surface); }
+.table-card { background: var(--card-bg); backdrop-filter: blur(16px); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.subject-form { display: flex; gap: .5rem; flex-wrap: wrap; align-items: flex-end; margin-bottom: 1.5rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; }
+.subject-chips { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .5rem; }
+.subj-chip { display: flex; align-items: center; gap: .4rem; background: var(--surface2); border: 1px solid var(--border); border-radius: 99px; padding: .35rem .85rem .35rem .7rem; font-size: .82rem; }
+.subj-chip form { display: inline; }
+.subj-chip button { background: none; border: none; color: var(--text3); cursor: pointer; font-size: .7rem; padding: 0; margin-left: .1rem; transition: color .2s; }
+.subj-chip button:hover { color: var(--red); }
+@media(max-width:640px) { .stat-row{grid-template-columns:repeat(2,1fr)} }
+</style>
+{% endblock %}
+{% block content %}
+<div class="admin-wrap">
+  <div class="admin-header">
+    <h1>🛡️ Admin Panel</h1>
+    <p>Manage users, notes, and platform settings · ScholarNest by Simran Rani</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="stat-row">
+    <div class="stat-tile"><div class="stat-tile-val">{{ stats.users }}</div><div class="stat-tile-lbl">Total Users</div></div>
+    <div class="stat-tile"><div class="stat-tile-val">{{ stats.notes }}</div><div class="stat-tile-lbl">Total Notes</div></div>
+    <div class="stat-tile"><div class="stat-tile-val">{{ stats.dl }}</div><div class="stat-tile-lbl">Downloads</div></div>
+    <div class="stat-tile"><div class="stat-tile-val">{{ stats.bookmarks }}</div><div class="stat-tile-lbl">Bookmarks</div></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showAdminTab('users',this)">👥 Users</button>
+    <button class="tab-btn" onclick="showAdminTab('notes',this)">📚 Notes</button>
+    <button class="tab-btn" onclick="showAdminTab('subjects',this)">🏷️ Subjects</button>
+  </div>
+
+  <!-- Users Tab -->
+  <div class="tab-content active" id="atab-users">
+    <div class="table-card" style="overflow-x:auto">
+      <table class="admin-table">
+        <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Role</th><th>Notes</th><th>Joined</th><th>Action</th></tr></thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td style="color:var(--text3)">{{ u.id }}</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:.6rem">
+                <div style="width:30px;height:30px;border-radius:50%;background:{{ u.avatar_color }};display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#fff;flex-shrink:0">{{ u.name[0] }}</div>
+                <strong>{{ u.name }}</strong>
+              </div>
+            </td>
+            <td style="color:var(--text2)">{{ u.email }}</td>
+            <td>
+              {% if u.role == 'admin' %}
+                <span class="badge badge-red">Admin</span>
+              {% else %}
+                <span class="badge badge-purple">Student</span>
+              {% endif %}
+            </td>
+            <td><span class="badge badge-teal">{{ u.nc }}</span></td>
+            <td style="color:var(--text3)">{{ u.created[:10] }}</td>
+            <td>
+              {% if u.role != 'admin' %}
+                <form method="POST" action="/admin/delete-user/{{ u.id }}" style="display:inline"
+                      onsubmit="return confirm('Delete user {{ u.name }} and all their data?')">
+                  <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-user-times fa-xs"></i> Remove</button>
+                </form>
+              {% else %}
+                <span style="font-size:.75rem;color:var(--text3)">Protected</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Notes Tab -->
+  <div class="tab-content" id="atab-notes">
+    <div class="table-card" style="overflow-x:auto">
+      <table class="admin-table">
+        <thead><tr><th>#</th><th>Title</th><th>Author</th><th>Subject</th><th>Size</th><th>DL</th><th>Views</th><th>Date</th><th>Action</th></tr></thead>
+        <tbody>
+          {% for n in notes %}
+          <tr>
+            <td style="color:var(--text3)">{{ n.id }}</td>
+            <td><a href="/note/{{ n.id }}" style="color:var(--accent2);font-weight:600">{{ n.title[:28] }}{% if n.title|length>28 %}…{% endif %}</a></td>
+            <td style="color:var(--text2)">{{ n.author }}</td>
+            <td><span class="badge badge-purple">{{ n.subject[:14] }}</span></td>
+            <td style="color:var(--text3)">{{ n.file_size|human_size }}</td>
+            <td style="color:var(--teal)">{{ n.downloads }}</td>
+            <td style="color:var(--accent2)">{{ n.views }}</td>
+            <td style="color:var(--text3)">{{ n.created[:10] }}</td>
+            <td>
+              <form method="POST" action="/note/delete/{{ n.id }}" style="display:inline"
+                    onsubmit="return confirm('Delete note {{ n.title[:20] }}?')">
+                <button type="submit" class="btn btn-danger btn-sm btn-icon" title="Delete"><i class="fas fa-trash fa-xs"></i></button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Subjects Tab -->
+  <div class="tab-content" id="atab-subjects">
+    <div class="subject-form">
+      <div style="flex:1;min-width:180px">
+        <label class="form-label">Subject Name</label>
+        <input type="text" id="sName" class="form-control" placeholder="e.g. Machine Learning"/>
+      </div>
+      <div style="width:100px">
+        <label class="form-label">Icon (emoji)</label>
+        <input type="text" id="sIcon" class="form-control" placeholder="🤖" maxlength="4"/>
+      </div>
+      <button class="btn btn-primary" onclick="addSubject()"><i class="fas fa-plus"></i> Add Subject</button>
+    </div>
+    <div class="subject-chips">
+      {% for s in subjects %}
+      <div class="subj-chip">
+        <span>{{ s.icon }}</span> {{ s.name }}
+        <form method="POST" action="/admin/delete-subject/{{ s.id }}" onsubmit="return confirm('Remove {{ s.name }}?')">
+          <button type="submit" title="Remove">✕</button>
+        </form>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+function showAdminTab(name, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('atab-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+
+function addSubject() {
+  const name = document.getElementById('sName').value.trim();
+  const icon = document.getElementById('sIcon').value.trim() || '📚';
+  if (!name) { showToast('Enter a subject name', 'warning'); return; }
+  const form = document.createElement('form');
+  form.method = 'POST'; form.action = '/admin/add-subject';
+  form.innerHTML = `<input name="name" value="${name}"><input name="icon" value="${icon}">`;
+  document.body.appendChild(form); form.submit();
+}
+</script>
+{% endblock %}

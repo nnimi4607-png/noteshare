@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>{% block title %}ScholarNest{% endblock %} · ScholarNest</title>
+<meta name="description" content="ScholarNest — Upload, Share & Discover Study Notes by Simran Rani"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Nunito:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+/* ═══════════════════════════════════════════════════════ Variables */
+:root {
+  --font-head: 'Syne', sans-serif;
+  --font-body: 'Nunito', sans-serif;
+  --radius:  16px;
+  --radius-sm: 10px;
+  --radius-lg: 24px;
+  --ease: cubic-bezier(.4,0,.2,1);
+  --t: .22s var(--ease);
+}
+[data-theme="dark"] {
+  --bg:        #0A0E1A;
+  --bg2:       #0F1525;
+  --surface:   rgba(255,255,255,.04);
+  --surface2:  rgba(255,255,255,.07);
+  --surface3:  rgba(255,255,255,.11);
+  --border:    rgba(255,255,255,.08);
+  --border2:   rgba(255,255,255,.14);
+  --text:      #EDF2FF;
+  --text2:     #8B9CC8;
+  --text3:     #5A6A8A;
+  --accent:    #7C6FFF;
+  --accent2:   #A78BFA;
+  --pink:      #F472B6;
+  --teal:      #34D399;
+  --amber:     #FBBF24;
+  --red:       #F87171;
+  --glow:      rgba(124,111,255,.25);
+  --card-bg:   rgba(15,21,37,.85);
+}
+[data-theme="light"] {
+  --bg:        #F0F4FF;
+  --bg2:       #E8EEFF;
+  --surface:   rgba(255,255,255,.7);
+  --surface2:  rgba(255,255,255,.9);
+  --surface3:  rgba(255,255,255,1);
+  --border:    rgba(108,99,255,.12);
+  --border2:   rgba(108,99,255,.22);
+  --text:      #1A1E3A;
+  --text2:     #4A5075;
+  --text3:     #8890B0;
+  --accent:    #6C5CE7;
+  --accent2:   #8B7FFF;
+  --pink:      #EC4899;
+  --teal:      #059669;
+  --amber:     #D97706;
+  --red:       #DC2626;
+  --glow:      rgba(108,92,231,.18);
+  --card-bg:   rgba(255,255,255,.82);
+}
+
+/* ═══════════════════════════════════════════════════════ Reset */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
+body{
+  font-family:var(--font-body);background:var(--bg);color:var(--text);
+  line-height:1.65;min-height:100vh;
+  background-image:
+    radial-gradient(ellipse 80% 60% at 20% -10%, rgba(124,111,255,.18) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 110%, rgba(244,114,182,.12) 0%, transparent 55%);
+  transition:background var(--t),color var(--t);
+}
+a{color:inherit;text-decoration:none}
+img{max-width:100%}
+button,input,select,textarea{font-family:inherit}
+
+/* ═══════════════════════════════════════════════════════ Glass Card */
+.glass{
+  background:var(--card-bg);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+}
+.glass-hover:hover{
+  border-color:var(--border2);
+  box-shadow:0 8px 32px var(--glow);
+  transform:translateY(-3px);
+  transition:all var(--t);
+}
+
+/* ═══════════════════════════════════════════════════════ Navbar */
+.navbar{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  height:64px;padding:0 2rem;
+  display:flex;align-items:center;gap:1rem;
+  background:rgba(10,14,26,.8);
+  backdrop-filter:blur(24px);
+  border-bottom:1px solid var(--border);
+  transition:background var(--t);
+}
+[data-theme="light"] .navbar{background:rgba(240,244,255,.85);}
+.nav-logo{
+  font-family:var(--font-head);font-size:1.3rem;font-weight:800;
+  background:linear-gradient(135deg,var(--accent),var(--pink));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;margin-right:auto;
+  display:flex;align-items:center;gap:.4rem;letter-spacing:-.02em;
+}
+.nav-logo svg{flex-shrink:0}
+.nav-link{
+  font-size:.875rem;font-weight:500;color:var(--text2);
+  padding:.4rem .75rem;border-radius:var(--radius-sm);
+  transition:color var(--t),background var(--t);white-space:nowrap;
+}
+.nav-link:hover,.nav-link.active{color:var(--text);background:var(--surface2)}
+.nav-cta{
+  display:inline-flex;align-items:center;gap:.4rem;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff;padding:.45rem 1.1rem;border-radius:99px;
+  font-size:.85rem;font-weight:600;
+  box-shadow:0 4px 16px var(--glow);
+  transition:opacity var(--t),transform var(--t);
+}
+.nav-cta:hover{opacity:.88;transform:translateY(-1px)}
+.notif-dot{
+  display:inline-flex;align-items:center;justify-content:center;
+  background:var(--pink);color:#fff;
+  font-size:.6rem;font-weight:700;
+  width:16px;height:16px;border-radius:50%;
+  margin-left:-.3rem;margin-top:-.8rem;
+  vertical-align:top;
+}
+.theme-btn{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:99px;padding:.4rem .7rem;
+  cursor:pointer;color:var(--text2);font-size:.9rem;
+  transition:all var(--t);
+}
+.theme-btn:hover{background:var(--surface3);color:var(--text)}
+.hamburger{display:none;background:none;border:none;color:var(--text);font-size:1.2rem;cursor:pointer}
+.nav-mobile{display:none;position:fixed;top:64px;left:0;right:0;bottom:0;z-index:199;
+  background:var(--bg);padding:1.5rem;overflow-y:auto;
+  flex-direction:column;gap:.4rem;border-top:1px solid var(--border)}
+.nav-mobile.open{display:flex}
+.nav-mobile .nav-link{padding:.75rem 1rem;font-size:1rem}
+
+/* ═══════════════════════════════════════════════════════ Alerts */
+.alerts-wrap{position:fixed;top:76px;right:1.5rem;z-index:300;display:flex;flex-direction:column;gap:.5rem}
+.alert{
+  padding:.85rem 1.2rem;border-radius:var(--radius-sm);
+  font-size:.875rem;font-weight:500;
+  display:flex;align-items:center;gap:.7rem;min-width:280px;max-width:380px;
+  box-shadow:0 8px 32px rgba(0,0,0,.3);
+  animation:alertIn .3s var(--ease);
+  border:1px solid transparent;
+}
+@keyframes alertIn{from{transform:translateX(110%);opacity:0}to{transform:none;opacity:1}}
+.alert-success{background:rgba(52,211,153,.12);border-color:rgba(52,211,153,.3);color:var(--teal)}
+.alert-danger{background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.3);color:var(--red)}
+.alert-warning{background:rgba(251,191,36,.12);border-color:rgba(251,191,36,.3);color:var(--amber)}
+.alert-info{background:rgba(124,111,255,.12);border-color:rgba(124,111,255,.3);color:var(--accent2)}
+[data-theme="light"] .alert-success{background:rgba(5,150,105,.08);color:#059669}
+[data-theme="light"] .alert-danger{background:rgba(220,38,38,.08);color:#DC2626}
+
+/* ═══════════════════════════════════════════════════════ Layout */
+.container{max-width:1200px;margin:0 auto;padding:0 1.5rem}
+main{padding-top:80px;min-height:100vh}
+.page-hero{padding:3.5rem 0 2rem;text-align:center}
+.page-title{font-family:var(--font-head);font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;letter-spacing:-.03em;margin-bottom:.5rem}
+.page-sub{color:var(--text2);font-size:1rem;max-width:500px;margin:0 auto}
+.gradient-text{background:linear-gradient(135deg,var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.section-label{font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:.75rem}
+
+/* ═══════════════════════════════════════════════════════ Buttons */
+.btn{
+  display:inline-flex;align-items:center;gap:.45rem;
+  padding:.6rem 1.3rem;border-radius:99px;border:none;
+  font-size:.875rem;font-weight:600;cursor:pointer;
+  font-family:inherit;transition:all var(--t);
+}
+.btn-primary{
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff;box-shadow:0 4px 16px var(--glow);
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px var(--glow)}
+.btn-ghost{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--surface3);border-color:var(--border2)}
+.btn-danger{background:rgba(248,113,113,.12);color:var(--red);border:1px solid rgba(248,113,113,.25)}
+.btn-danger:hover{background:rgba(248,113,113,.2)}
+.btn-sm{padding:.38rem .85rem;font-size:.8rem}
+.btn-icon{width:36px;height:36px;padding:0;justify-content:center;border-radius:var(--radius-sm)}
+
+/* ═══════════════════════════════════════════════════════ Forms */
+.form-group{margin-bottom:1.25rem}
+.form-label{display:block;font-size:.8rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);margin-bottom:.5rem}
+.form-control{
+  width:100%;padding:.75rem 1rem;
+  background:var(--surface);border:1.5px solid var(--border);
+  border-radius:var(--radius-sm);color:var(--text);
+  font-size:.9rem;outline:none;font-family:inherit;
+  transition:border-color var(--t),box-shadow var(--t);
+}
+.form-control:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,111,255,.15)}
+.form-control::placeholder{color:var(--text3)}
+textarea.form-control{resize:vertical;min-height:90px}
+select.form-control{cursor:pointer}
+[data-theme="dark"] select.form-control option{background:#1a2035}
+.input-icon-wrap{position:relative}
+.input-icon-wrap i{position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none}
+.input-icon-wrap .form-control{padding-left:2.6rem}
+
+/* ═══════════════════════════════════════════════════════ Badges */
+.badge{
+  display:inline-flex;align-items:center;gap:.3rem;
+  padding:.22rem .65rem;border-radius:99px;
+  font-size:.72rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+}
+.badge-purple{background:rgba(124,111,255,.15);color:var(--accent2)}
+.badge-pink{background:rgba(244,114,182,.15);color:var(--pink)}
+.badge-teal{background:rgba(52,211,153,.15);color:var(--teal)}
+.badge-amber{background:rgba(251,191,36,.15);color:var(--amber)}
+.badge-red{background:rgba(248,113,113,.15);color:var(--red)}
+.badge-gray{background:var(--surface2);color:var(--text2)}
+
+/* ═══════════════════════════════════════════════════════ Note Card */
+.note-card{
+  background:var(--card-bg);
+  backdrop-filter:blur(16px);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:1.4rem;
+  display:flex;flex-direction:column;gap:.8rem;
+  transition:all var(--t);position:relative;overflow:hidden;
+}
+.note-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--accent),var(--pink));
+  transform:scaleX(0);transform-origin:left;
+  transition:transform var(--t);
+}
+.note-card:hover{border-color:var(--border2);transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.3)}
+.note-card:hover::before{transform:scaleX(1)}
+.note-card-title{font-family:var(--font-head);font-size:1rem;font-weight:700;color:var(--text);line-height:1.3}
+.note-card-desc{font-size:.83rem;color:var(--text2);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.note-card-meta{font-size:.75rem;color:var(--text3);display:flex;flex-wrap:wrap;gap:.4rem .8rem;align-items:center}
+.note-card-meta span{display:flex;align-items:center;gap:.3rem}
+.note-card-footer{display:flex;gap:.5rem;align-items:center;padding-top:.75rem;border-top:1px solid var(--border)}
+.avatar-xs{
+  width:28px;height:28px;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:.7rem;font-weight:700;color:#fff;flex-shrink:0;
+}
+.bookmark-btn{
+  background:none;border:none;cursor:pointer;color:var(--text3);
+  padding:.3rem;border-radius:6px;font-size:.95rem;
+  transition:color var(--t),transform var(--t);
+}
+.bookmark-btn:hover,.bookmark-btn.saved{color:var(--amber)}
+.bookmark-btn.saved i{font-weight:900}
+
+/* ═══════════════════════════════════════════════════════ Footer */
+footer{
+  margin-top:5rem;padding:2.5rem;text-align:center;
+  border-top:1px solid var(--border);
+  background:rgba(0,0,0,.2);
+  font-size:.85rem;color:var(--text3);
+}
+footer .footer-brand{font-family:var(--font-head);font-size:1.2rem;font-weight:800;margin-bottom:.5rem}
+footer .footer-brand span{background:linear-gradient(135deg,var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+footer .footer-dev{margin-top:.5rem;color:var(--text2)}
+footer .footer-dev strong{color:var(--accent2)}
+footer .social-links{display:flex;justify-content:center;gap:1rem;margin-top:1rem}
+footer .social-links a{
+  width:36px;height:36px;border-radius:50%;
+  background:var(--surface2);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--text2);font-size:.85rem;
+  transition:all var(--t);
+}
+footer .social-links a:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* ═══════════════════════════════════════════════════════ Utilities */
+.grid-3{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.25rem}
+.grid-4{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem}
+.flex-between{display:flex;justify-content:space-between;align-items:center}
+.text-center{text-align:center}
+.mt-1{margin-top:.5rem}.mt-2{margin-top:1rem}.mt-3{margin-top:1.5rem}.mt-4{margin-top:2rem}
+.mb-1{margin-bottom:.5rem}.mb-2{margin-bottom:1rem}.mb-3{margin-bottom:1.5rem}.mb-4{margin-bottom:2rem}
+.hidden{display:none}
+.divider{height:1px;background:var(--border);margin:1.5rem 0}
+
+/* ═══════════════════════════════════════════════════════ Page fade */
+.page-fade{animation:pageFade .4s var(--ease)}
+@keyframes pageFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* ═══════════════════════════════════════════════════════ Scrollbar */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:99px}
+::-webkit-scrollbar-thumb:hover{background:var(--accent)}
+
+/* ═══════════════════════════════════════════════════════ Mobile */
+@media(max-width:768px){
+  .hamburger{display:block}
+  .nav-links{display:none}
+  .container{padding:0 1rem}
+}
+</style>
+{% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <a href="/" class="nav-logo">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <path d="M12 2L2 7l10 5 10-5-10-5z" fill="url(#lg1)"/>
+      <path d="M2 17l10 5 10-5" stroke="url(#lg2)" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <path d="M2 12l10 5 10-5" stroke="url(#lg3)" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <defs>
+        <linearGradient id="lg1" x1="2" y1="7" x2="22" y2="7"><stop stop-color="#7C6FFF"/><stop offset="1" stop-color="#F472B6"/></linearGradient>
+        <linearGradient id="lg2" x1="2" y1="17" x2="22" y2="17"><stop stop-color="#7C6FFF"/><stop offset="1" stop-color="#F472B6"/></linearGradient>
+        <linearGradient id="lg3" x1="2" y1="12" x2="22" y2="12"><stop stop-color="#7C6FFF"/><stop offset="1" stop-color="#F472B6"/></linearGradient>
+      </defs>
+    </svg>
+    ScholarNest
+  </a>
+  <div class="nav-links" style="display:flex;align-items:center;gap:.25rem">
+    <a href="/" class="nav-link {% if request.endpoint=='home' %}active{% endif %}"><i class="fas fa-home fa-sm"></i> Home</a>
+    <a href="/explore" class="nav-link {% if request.endpoint=='explore' %}active{% endif %}"><i class="fas fa-compass fa-sm"></i> Explore</a>
+    {% if current_user %}
+      <a href="/upload" class="nav-link {% if request.endpoint=='upload' %}active{% endif %}"><i class="fas fa-upload fa-sm"></i> Upload</a>
+      <a href="/dashboard" class="nav-link {% if request.endpoint=='dashboard' %}active{% endif %}">
+        <i class="fas fa-th-large fa-sm"></i> Dashboard
+        {% if notif_count %}<span class="notif-dot">{{ notif_count }}</span>{% endif %}
+      </a>
+      {% if current_user.role == 'admin' %}
+        <a href="/admin" class="nav-link {% if request.endpoint=='admin' %}active{% endif %}"><i class="fas fa-shield-alt fa-sm"></i> Admin</a>
+      {% endif %}
+      <a href="/logout" class="nav-link"><i class="fas fa-sign-out-alt fa-sm"></i> Logout</a>
+    {% else %}
+      <a href="/login" class="nav-link">Sign In</a>
+      <a href="/signup" class="nav-cta"><i class="fas fa-rocket fa-sm"></i> Get Started</a>
+    {% endif %}
+    <button class="theme-btn" id="themeBtn" title="Toggle theme">
+      <i class="fas fa-moon" id="themeIcon"></i>
+    </button>
+  </div>
+  <button class="hamburger" onclick="document.getElementById('navMobile').classList.toggle('open')">
+    <i class="fas fa-bars"></i>
+  </button>
+</nav>
+
+<!-- Mobile Nav -->
+<div class="nav-mobile" id="navMobile">
+  <a href="/" class="nav-link">🏠 Home</a>
+  <a href="/explore" class="nav-link">🧭 Explore</a>
+  {% if current_user %}
+    <a href="/upload" class="nav-link">📤 Upload</a>
+    <a href="/dashboard" class="nav-link">📊 Dashboard</a>
+    {% if current_user.role == 'admin' %}<a href="/admin" class="nav-link">🛡 Admin</a>{% endif %}
+    <a href="/logout" class="nav-link">🚪 Logout</a>
+  {% else %}
+    <a href="/login" class="nav-link">🔐 Sign In</a>
+    <a href="/signup" class="nav-link">🚀 Get Started</a>
+  {% endif %}
+</div>
+
+<!-- Alerts -->
+<div class="alerts-wrap" id="alertsWrap">
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% for cat, msg in messages %}
+  <div class="alert alert-{{ cat }}">
+    {% if cat == 'success' %}<i class="fas fa-check-circle"></i>
+    {% elif cat == 'danger' %}<i class="fas fa-times-circle"></i>
+    {% elif cat == 'warning' %}<i class="fas fa-exclamation-triangle"></i>
+    {% else %}<i class="fas fa-info-circle"></i>{% endif %}
+    {{ msg }}
+  </div>
+  {% endfor %}
+{% endwith %}
+</div>
+
+<main class="page-fade">
+{% block content %}{% endblock %}
+</main>
+
+<footer>
+  <div class="footer-brand"><span>Scholar</span>Nest</div>
+  <p>The collaborative learning platform for college students</p>
+  <div class="footer-dev">Designed & Developed with ❤️ by <strong>Simran Rani</strong></div>
+  <div class="social-links">
+    <a href="#" title="GitHub"><i class="fab fa-github"></i></a>
+    <a href="#" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+    <a href="#" title="Twitter"><i class="fab fa-twitter"></i></a>
+    <a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>
+  </div>
+  <div style="margin-top:1.2rem;font-size:.75rem;">© 2024 ScholarNest by Simran Rani · All rights reserved</div>
+</footer>
+
+<script>
+/* ── Theme ── */
+const savedTheme = localStorage.getItem('sn-theme') || 'dark';
+document.documentElement.setAttribute('data-theme', savedTheme);
+function updateThemeIcon(t) {
+  document.getElementById('themeIcon').className = t === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
+}
+updateThemeIcon(savedTheme);
+document.getElementById('themeBtn').addEventListener('click', () => {
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('sn-theme', next);
+  updateThemeIcon(next);
+});
+
+/* ── Auto-dismiss alerts ── */
+setTimeout(() => {
+  document.querySelectorAll('.alert').forEach(el => {
+    el.style.transition = 'opacity .4s, transform .4s';
+    el.style.opacity = '0'; el.style.transform = 'translateX(110%)';
+    setTimeout(() => el.remove(), 400);
+  });
+}, 4500);
+
+/* ── Close mobile nav on link click ── */
+document.querySelectorAll('.nav-mobile .nav-link').forEach(l => {
+  l.addEventListener('click', () => document.getElementById('navMobile').classList.remove('open'));
+});
+
+/* ── Bookmark toggle ── */
+function toggleBookmark(btn, noteId) {
+  fetch(`/bookmark/${noteId}`, {method:'POST'})
+    .then(r => r.json())
+    .then(d => {
+      d.saved ? btn.classList.add('saved') : btn.classList.remove('saved');
+      btn.querySelector('i').className = d.saved ? 'fas fa-bookmark' : 'far fa-bookmark';
+      showToast(d.saved ? 'Bookmarked!' : 'Bookmark removed', d.saved ? 'success' : 'info');
+    });
+}
+
+/* ── Toast helper ── */
+function showToast(msg, type='info') {
+  const wrap = document.getElementById('alertsWrap');
+  const el = document.createElement('div');
+  el.className = `alert alert-${type}`;
+  const icons = {success:'check-circle',info:'info-circle',danger:'times-circle',warning:'exclamation-triangle'};
+  el.innerHTML = `<i class="fas fa-${icons[type]||'info-circle'}"></i> ${msg}`;
+  wrap.appendChild(el);
+  setTimeout(() => { el.style.transition='opacity .4s,transform .4s'; el.style.opacity='0'; el.style.transform='translateX(110%)'; setTimeout(()=>el.remove(),400); }, 3000);
+}
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

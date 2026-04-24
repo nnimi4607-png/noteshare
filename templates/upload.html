@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block title %}Upload Note{% endblock %}
+{% block extra_css %}
+<style>
+.upload-page { max-width: 720px; margin: 2.5rem auto; padding: 0 1.5rem; }
+.upload-card { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2.5rem; }
+.upload-title { font-family: var(--font-head); font-size: 2rem; font-weight: 800; margin-bottom: .3rem; }
+.upload-sub { color: var(--text2); margin-bottom: 2rem; }
+.drop-zone {
+  border: 2px dashed var(--border2); border-radius: var(--radius);
+  padding: 3rem; text-align: center; cursor: pointer;
+  background: var(--surface); position: relative;
+  transition: all .22s var(--ease);
+}
+.drop-zone:hover, .drop-zone.over { border-color: var(--accent); background: rgba(124,111,255,.06); }
+.drop-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.drop-icon { font-size: 3rem; margin-bottom: .75rem; }
+.drop-label { font-family: var(--font-head); font-size: 1rem; font-weight: 700; margin-bottom: .3rem; }
+.drop-sub { font-size: .82rem; color: var(--text2); }
+.file-pill {
+  display: none; align-items: center; gap: .75rem;
+  background: rgba(52,211,153,.08); border: 1px solid rgba(52,211,153,.25);
+  border-radius: var(--radius-sm); padding: .75rem 1rem; margin-top: .75rem;
+}
+.file-pill.show { display: flex; }
+.file-pill-icon { width: 36px; height: 36px; border-radius: 8px; background: rgba(248,113,113,.15); display: flex; align-items: center; justify-content: center; color: var(--red); font-size: .9rem; flex-shrink: 0; }
+.file-pill-name { font-size: .875rem; font-weight: 600; color: var(--teal); }
+.file-pill-size { font-size: .75rem; color: var(--text2); }
+.col-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.char-count { font-size: .72rem; color: var(--text3); text-align: right; margin-top: .2rem; }
+.tag-hint { font-size: .75rem; color: var(--text3); margin-top: .3rem; }
+.upload-btn { width: 100%; justify-content: center; padding: 1rem; font-size: 1rem; }
+.progress-bar { display: none; height: 4px; border-radius: 99px; background: var(--border); margin-top: .75rem; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--pink)); width: 0; transition: width .3s; }
+@media(max-width:520px) { .col-2 { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+{% block content %}
+<div class="upload-page">
+  <div class="upload-card">
+    <h1 class="upload-title">📤 Upload Notes</h1>
+    <p class="upload-sub">Share your study material with fellow students</p>
+
+    <form method="POST" action="/upload" enctype="multipart/form-data" id="uploadForm">
+      <!-- Drop Zone -->
+      <div class="form-group">
+        <label class="form-label">PDF File *</label>
+        <div class="drop-zone" id="dropZone">
+          <input type="file" name="file" accept=".pdf" required id="fileInput" onchange="onFileSelect(this)"/>
+          <div class="drop-icon">📄</div>
+          <div class="drop-label">Drag & Drop your PDF here</div>
+          <div class="drop-sub">or click to browse · PDF only · Max {{ max_mb if max_mb else 20 }}MB</div>
+        </div>
+        <div class="file-pill" id="filePill">
+          <div class="file-pill-icon"><i class="fas fa-file-pdf"></i></div>
+          <div style="flex:1;min-width:0">
+            <div class="file-pill-name" id="pillName"></div>
+            <div class="file-pill-size" id="pillSize"></div>
+          </div>
+          <button type="button" onclick="clearFile()" class="btn btn-danger btn-sm btn-icon"><i class="fas fa-times fa-xs"></i></button>
+        </div>
+        <div class="progress-bar" id="uploadProgress"><div class="progress-fill" id="progressFill"></div></div>
+      </div>
+
+      <!-- Title -->
+      <div class="form-group">
+        <label class="form-label">Note Title *</label>
+        <input type="text" name="title" class="form-control" id="titleInput"
+               placeholder="e.g. Complete Python OOP Notes — Chapter 5"
+               required maxlength="120" oninput="document.getElementById('titleCount').textContent=this.value.length+'/120'"/>
+        <div class="char-count" id="titleCount">0/120</div>
+      </div>
+
+      <!-- Subject + Tags -->
+      <div class="col-2">
+        <div class="form-group">
+          <label class="form-label">Subject *</label>
+          <select name="subject" class="form-control" required>
+            <option value="">Select subject...</option>
+            {% for s in subjects %}
+              <option value="{{ s.name }}">{{ s.icon }} {{ s.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tags</label>
+          <input type="text" name="tags" class="form-control" placeholder="exam, chapter1, beginner"/>
+          <div class="tag-hint">Comma-separated keywords</div>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea name="description" class="form-control" id="descInput"
+                  placeholder="What topics does this note cover? Any important details for other students..."
+                  maxlength="500" oninput="document.getElementById('descCount').textContent=this.value.length+'/500'"></textarea>
+        <div class="char-count" id="descCount">0/500</div>
+      </div>
+
+      <!-- Guidelines -->
+      <div style="background:rgba(124,111,255,.06);border:1px solid rgba(124,111,255,.15);border-radius:var(--radius-sm);padding:1rem;margin-bottom:1.5rem;font-size:.8rem;color:var(--text2)">
+        <div style="font-weight:700;color:var(--accent2);margin-bottom:.4rem">📋 Upload Guidelines</div>
+        <div>• Only PDF files are accepted (max 20MB)</div>
+        <div>• Make sure your notes are original or properly cited</div>
+        <div>• Use a descriptive title so others can find your notes easily</div>
+        <div>• Notes will be publicly accessible after upload</div>
+      </div>
+
+      <button type="submit" class="btn btn-primary upload-btn" id="submitBtn">
+        <i class="fas fa-cloud-upload-alt"></i> Publish Notes
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+const dz = document.getElementById('dropZone');
+const fi = document.getElementById('fileInput');
+
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('over'));
+dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('over'); if (e.dataTransfer.files[0]) { fi.files = e.dataTransfer.files; onFileSelect(fi); } });
+
+function onFileSelect(input) {
+  const f = input.files[0];
+  if (!f) return;
+  if (!f.name.endsWith('.pdf')) { showToast('Only PDF files allowed!', 'danger'); input.value = ''; return; }
+  if (f.size > 20 * 1024 * 1024) { showToast('File exceeds 20MB limit!', 'danger'); input.value = ''; return; }
+  document.getElementById('pillName').textContent = f.name;
+  const kb = f.size / 1024;
+  document.getElementById('pillSize').textContent = kb > 1024 ? (kb/1024).toFixed(1)+' MB' : Math.round(kb)+' KB';
+  document.getElementById('filePill').classList.add('show');
+  // Auto-fill title from filename
+  const titleIn = document.getElementById('titleInput');
+  if (!titleIn.value) {
+    titleIn.value = f.name.replace('.pdf','').replace(/[-_]/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+    document.getElementById('titleCount').textContent = titleIn.value.length + '/120';
+  }
+}
+
+function clearFile() {
+  fi.value = '';
+  document.getElementById('filePill').classList.remove('show');
+  document.getElementById('titleInput').value = '';
+  document.getElementById('titleCount').textContent = '0/120';
+}
+
+document.getElementById('uploadForm').addEventListener('submit', function() {
+  document.getElementById('submitBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+  document.getElementById('submitBtn').disabled = true;
+  const bar = document.getElementById('uploadProgress');
+  const fill = document.getElementById('progressFill');
+  bar.style.display = 'block';
+  let w = 0;
+  const iv = setInterval(() => { w = Math.min(w + Math.random()*15, 90); fill.style.width = w+'%'; }, 200);
+});
+</script>
+{% endblock %}

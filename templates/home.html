@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block extra_css %}
+<style>
+/* ── Hero ── */
+.hero {
+  padding: 5rem 0 4rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 70% 70% at 50% -20%, rgba(124,111,255,.2) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: .5rem;
+  background: rgba(124,111,255,.12); border: 1px solid rgba(124,111,255,.25);
+  color: var(--accent2); font-size: .8rem; font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase;
+  padding: .4rem 1rem; border-radius: 99px; margin-bottom: 1.5rem;
+  animation: heroFade .6s .1s var(--ease) both;
+}
+.hero h1 {
+  font-family: var(--font-head); font-size: clamp(2.5rem,6vw,4.5rem);
+  font-weight: 800; line-height: 1.08; letter-spacing: -.04em;
+  margin-bottom: 1.25rem;
+  animation: heroFade .6s .2s var(--ease) both;
+}
+.hero-sub {
+  font-size: clamp(1rem,2vw,1.15rem); color: var(--text2);
+  max-width: 560px; margin: 0 auto 2.5rem;
+  animation: heroFade .6s .3s var(--ease) both;
+}
+.hero-ctas {
+  display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;
+  animation: heroFade .6s .4s var(--ease) both;
+}
+.hero-cta-primary {
+  display: inline-flex; align-items: center; gap: .5rem;
+  background: linear-gradient(135deg, #7C6FFF, #F472B6);
+  color: #fff; padding: .85rem 2rem; border-radius: 99px;
+  font-size: 1rem; font-weight: 700;
+  box-shadow: 0 8px 32px rgba(124,111,255,.35);
+  transition: all .22s var(--ease);
+}
+.hero-cta-primary:hover { transform: translateY(-3px); box-shadow: 0 16px 48px rgba(124,111,255,.45); }
+.hero-cta-secondary {
+  display: inline-flex; align-items: center; gap: .5rem;
+  background: var(--surface); border: 1px solid var(--border2);
+  color: var(--text); padding: .85rem 2rem; border-radius: 99px;
+  font-size: 1rem; font-weight: 600;
+  backdrop-filter: blur(12px);
+  transition: all .22s var(--ease);
+}
+.hero-cta-secondary:hover { background: var(--surface2); transform: translateY(-3px); }
+@keyframes heroFade { from { opacity:0; transform:translateY(20px) } to { opacity:1; transform:none } }
+
+/* ── Stats Bar ── */
+.stats-bar {
+  display: grid; grid-template-columns: repeat(4,1fr);
+  gap: 1px; background: var(--border);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  overflow: hidden; margin: 3rem 0;
+}
+.stat-cell {
+  background: var(--card-bg); backdrop-filter: blur(16px);
+  padding: 1.5rem; text-align: center;
+}
+.stat-num {
+  font-family: var(--font-head); font-size: 2rem; font-weight: 800;
+  background: linear-gradient(135deg,var(--accent),var(--pink));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; line-height: 1;
+}
+.stat-label { font-size: .8rem; color: var(--text2); margin-top: .3rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+
+/* ── Subjects ── */
+.subjects-scroll {
+  display: flex; gap: .75rem; flex-wrap: wrap; margin-bottom: 1rem;
+}
+.subject-chip {
+  display: inline-flex; align-items: center; gap: .4rem;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text2); padding: .5rem 1rem; border-radius: 99px;
+  font-size: .85rem; font-weight: 500;
+  transition: all .2s var(--ease); text-decoration: none;
+}
+.subject-chip:hover { background: var(--surface2); border-color: var(--accent); color: var(--accent2); transform: translateY(-2px); }
+.subject-count { font-size: .7rem; background: var(--surface2); padding: .1rem .4rem; border-radius: 99px; }
+
+/* ── Section ── */
+.section { padding: 3rem 0; }
+.section-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+.section-title { font-family: var(--font-head); font-size: 1.4rem; font-weight: 800; letter-spacing: -.02em; }
+.section-link { font-size: .85rem; color: var(--accent2); font-weight: 600; display: flex; align-items: center; gap: .3rem; }
+.section-link:hover { color: var(--accent) }
+
+/* ── AI Banner ── */
+.ai-banner {
+  background: linear-gradient(135deg, rgba(124,111,255,.15), rgba(244,114,182,.12));
+  border: 1px solid rgba(124,111,255,.25);
+  border-radius: var(--radius-lg);
+  padding: 2.5rem;
+  display: flex; align-items: center; gap: 2rem;
+  flex-wrap: wrap;
+  margin-bottom: 3rem;
+}
+.ai-banner-icon { font-size: 3.5rem; flex-shrink: 0; }
+.ai-banner h2 { font-family: var(--font-head); font-size: 1.5rem; font-weight: 800; margin-bottom: .4rem; }
+.ai-banner p { color: var(--text2); font-size: .9rem; }
+
+@media(max-width:640px){
+  .stats-bar{grid-template-columns:repeat(2,1fr)}
+  .ai-banner{flex-direction:column;text-align:center}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-eyebrow"><i class="fas fa-star"></i> Trusted by 1000+ students</div>
+    <h1>Share Knowledge,<br/><span class="gradient-text">Ace Every Exam</span></h1>
+    <p class="hero-sub">Upload, discover and download study notes in one beautiful platform. Built for college students, by students.</p>
+    <div class="hero-ctas">
+      {% if current_user %}
+        <a href="/explore" class="hero-cta-primary"><i class="fas fa-compass"></i> Explore Notes</a>
+        <a href="/upload" class="hero-cta-secondary"><i class="fas fa-upload"></i> Upload Notes</a>
+      {% else %}
+        <a href="/signup" class="hero-cta-primary"><i class="fas fa-rocket"></i> Get Started Free</a>
+        <a href="/explore" class="hero-cta-secondary"><i class="fas fa-compass"></i> Browse Notes</a>
+      {% endif %}
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-cell"><div class="stat-num">{{ stats.notes }}+</div><div class="stat-label">Notes Shared</div></div>
+    <div class="stat-cell"><div class="stat-num">{{ stats.users }}+</div><div class="stat-label">Students</div></div>
+    <div class="stat-cell"><div class="stat-num">{{ stats.dl }}+</div><div class="stat-label">Downloads</div></div>
+    <div class="stat-cell"><div class="stat-num">{{ stats.subjects }}+</div><div class="stat-label">Subjects</div></div>
+  </div>
+
+  <!-- Subjects -->
+  <section class="section">
+    <div class="section-label">Browse by Subject</div>
+    <div class="subjects-scroll">
+      {% for s in subjects %}
+        <a href="/explore?subject={{ s.name|urlencode }}" class="subject-chip">
+          {{ s.icon }} {{ s.name }} <span class="subject-count">{{ s.note_count }}</span>
+        </a>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Featured Notes -->
+  <section class="section">
+    <div class="section-head">
+      <h2 class="section-title">🔥 Most Downloaded</h2>
+      <a href="/explore?sort=popular" class="section-link">View all <i class="fas fa-arrow-right fa-xs"></i></a>
+    </div>
+    {% if featured %}
+    <div class="grid-3">
+      {% for note in featured %}
+      {% set tags = note.tags|replace('"','')|replace('[','')|replace(']','') %}
+      <div class="note-card glass-hover">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem">
+          <span class="badge badge-purple">{{ note.subject[:18] }}</span>
+          <span style="font-size:.75rem;color:var(--text3)">{{ note.created|time_ago }}</span>
+        </div>
+        <a href="/note/{{ note.id }}" class="note-card-title">{{ note.title }}</a>
+        {% if note.description %}
+          <p class="note-card-desc">{{ note.description }}</p>
+        {% endif %}
+        <div class="note-card-meta">
+          <span><div class="avatar-xs" style="background:{{ note.avatar_color }}">{{ note.author[0] }}</div> {{ note.author }}</span>
+          <span><i class="fas fa-download"></i> {{ note.downloads }}</span>
+          <span><i class="fas fa-eye"></i> {{ note.views }}</span>
+          <span><i class="fas fa-file-pdf" style="color:var(--red)"></i> PDF · {{ note.file_size|human_size }}</span>
+        </div>
+        <div class="note-card-footer">
+          <a href="/note/{{ note.id }}" class="btn btn-primary btn-sm" style="flex:1;justify-content:center">View Note</a>
+          {% if current_user %}
+            <a href="/download/{{ note.id }}" class="btn btn-ghost btn-icon" title="Download"><i class="fas fa-download"></i></a>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+      <div style="text-align:center;padding:3rem;color:var(--text3)">
+        <i class="fas fa-book-open" style="font-size:2.5rem;opacity:.3;display:block;margin-bottom:.8rem"></i>
+        No notes yet. <a href="/upload" style="color:var(--accent2)">Be the first to upload!</a>
+      </div>
+    {% endif %}
+  </section>
+
+  <!-- Recently Added -->
+  {% if recent %}
+  <section class="section">
+    <div class="section-head">
+      <h2 class="section-title">✨ Recently Added</h2>
+      <a href="/explore?sort=newest" class="section-link">View all <i class="fas fa-arrow-right fa-xs"></i></a>
+    </div>
+    <div class="grid-3">
+      {% for note in recent %}
+      <div class="note-card glass-hover">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem">
+          <span class="badge badge-teal">{{ note.subject[:18] }}</span>
+          <span style="font-size:.75rem;color:var(--text3)">{{ note.created|time_ago }}</span>
+        </div>
+        <a href="/note/{{ note.id }}" class="note-card-title">{{ note.title }}</a>
+        {% if note.description %}<p class="note-card-desc">{{ note.description }}</p>{% endif %}
+        <div class="note-card-meta">
+          <span><div class="avatar-xs" style="background:{{ note.avatar_color }}">{{ note.author[0] }}</div> {{ note.author }}</span>
+          <span><i class="fas fa-download"></i> {{ note.downloads }}</span>
+          <span><i class="fas fa-file-pdf" style="color:var(--red)"></i> {{ note.file_size|human_size }}</span>
+        </div>
+        <div class="note-card-footer">
+          <a href="/note/{{ note.id }}" class="btn btn-primary btn-sm" style="flex:1;justify-content:center">View Note</a>
+          {% if current_user %}
+            <a href="/download/{{ note.id }}" class="btn btn-ghost btn-icon" title="Download"><i class="fas fa-download"></i></a>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- AI Banner -->
+  <div class="ai-banner">
+    <div class="ai-banner-icon">🤖</div>
+    <div style="flex:1">
+      <h2>AI Study Assistant <span class="badge badge-purple">New</span></h2>
+      <p>Ask any academic question and get instant, AI-powered explanations. Plus YouTube video recommendations for every topic.</p>
+    </div>
+    {% if current_user %}
+      <a href="/dashboard#ai-assistant" class="btn btn-primary">Try AI Assistant <i class="fas fa-arrow-right fa-sm"></i></a>
+    {% else %}
+      <a href="/signup" class="btn btn-primary">Get Free Access <i class="fas fa-arrow-right fa-sm"></i></a>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

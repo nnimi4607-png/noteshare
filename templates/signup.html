@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}Create Account{% endblock %}
+{% block extra_css %}
+<style>
+.auth-page { min-height: calc(100vh - 64px); display: flex; align-items: center; justify-content: center; padding: 2rem; }
+.auth-container { display: grid; grid-template-columns: 1fr 1fr; gap: 0; max-width: 860px; width: 100%; border-radius: var(--radius-lg); overflow: hidden; box-shadow: 0 24px 80px rgba(0,0,0,.4); border: 1px solid var(--border); }
+.auth-left {
+  background: linear-gradient(135deg, #F472B6 0%, #7C6FFF 100%);
+  padding: 3rem; display: flex; flex-direction: column; justify-content: center;
+  color: #fff; position: relative; overflow: hidden;
+}
+.auth-left::before { content:''; position:absolute; width:300px; height:300px; border-radius:50%; background:rgba(255,255,255,.08); bottom:-80px; right:-80px; }
+.auth-left::after { content:''; position:absolute; width:200px; height:200px; border-radius:50%; background:rgba(255,255,255,.06); top:-50px; left:-50px; }
+.auth-left-content { position: relative; z-index: 1; }
+.auth-brand { font-family: var(--font-head); font-size: 1.8rem; font-weight: 800; margin-bottom: .4rem; }
+.auth-tagline { opacity: .85; font-size: .95rem; line-height: 1.6; margin-bottom: 2rem; }
+.auth-feature { display: flex; align-items: center; gap: .75rem; margin-bottom: .75rem; font-size: .875rem; opacity: .9; }
+.auth-feature-icon { width: 28px; height: 28px; border-radius: 8px; background: rgba(255,255,255,.2); display: flex; align-items: center; justify-content: center; font-size: .8rem; flex-shrink: 0; }
+.auth-right { background: var(--card-bg); backdrop-filter: blur(20px); padding: 2.5rem; }
+.auth-right-title { font-family: var(--font-head); font-size: 1.6rem; font-weight: 800; margin-bottom: .3rem; }
+.auth-right-sub { color: var(--text2); font-size: .875rem; margin-bottom: 1.75rem; }
+.input-wrap { position: relative; }
+.input-prefix { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text3); pointer-events: none; width: 16px; text-align: center; }
+.input-wrap .form-control { padding-left: 2.7rem; }
+.btn-full { width: 100%; justify-content: center; padding: .85rem; font-size: .95rem; }
+.auth-footer { text-align: center; font-size: .875rem; color: var(--text2); margin-top: 1.25rem; }
+.auth-footer a { color: var(--accent2); font-weight: 600; }
+.strength-track { height: 4px; border-radius: 99px; background: var(--border); margin-top: .4rem; overflow: hidden; }
+.strength-bar { height: 100%; border-radius: 99px; width: 0; transition: width .3s, background .3s; }
+.strength-label { font-size: .72rem; color: var(--text3); margin-top: .25rem; }
+.terms { font-size: .78rem; color: var(--text2); margin-top: 1rem; text-align: center; }
+.terms a { color: var(--accent2); }
+@media(max-width:640px) { .auth-container { grid-template-columns: 1fr; } .auth-left { display: none; } }
+</style>
+{% endblock %}
+{% block content %}
+<div class="auth-page">
+  <div class="auth-container">
+    <div class="auth-left">
+      <div class="auth-left-content">
+        <div class="auth-brand">📚 ScholarNest</div>
+        <p class="auth-tagline">Join thousands of students sharing knowledge and acing exams together.</p>
+        <div class="auth-feature"><div class="auth-feature-icon">✅</div> Free forever — no credit card needed</div>
+        <div class="auth-feature"><div class="auth-feature-icon">🔒</div> Secure & encrypted file storage</div>
+        <div class="auth-feature"><div class="auth-feature-icon">🌙</div> Dark mode + beautiful UI</div>
+        <div class="auth-feature"><div class="auth-feature-icon">📱</div> Works on all devices</div>
+        <div style="margin-top:2rem;padding-top:1.5rem;border-top:1px solid rgba(255,255,255,.2);font-size:.78rem;opacity:.7">
+          Developed with ❤️ by <strong>Simran Rani</strong>
+        </div>
+      </div>
+    </div>
+    <div class="auth-right">
+      <h1 class="auth-right-title">Create Account 🚀</h1>
+      <p class="auth-right-sub">Join ScholarNest and start sharing knowledge</p>
+      <form method="POST" action="/signup">
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <div class="input-wrap">
+            <i class="fas fa-user input-prefix"></i>
+            <input type="text" name="name" class="form-control" placeholder="Simran Rani" required minlength="2" autocomplete="name"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">College Email</label>
+          <div class="input-wrap">
+            <i class="fas fa-envelope input-prefix"></i>
+            <input type="email" name="email" class="form-control" placeholder="you@college.edu" required autocomplete="email"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="input-wrap">
+            <i class="fas fa-lock input-prefix"></i>
+            <input type="password" name="password" id="pw1" class="form-control" placeholder="Min 6 characters" required minlength="6" oninput="checkStrength(this.value)" autocomplete="new-password"/>
+          </div>
+          <div class="strength-track"><div class="strength-bar" id="strengthBar"></div></div>
+          <div class="strength-label" id="strengthLabel">Enter a password</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirm Password</label>
+          <div class="input-wrap">
+            <i class="fas fa-shield-alt input-prefix"></i>
+            <input type="password" name="password2" id="pw2" class="form-control" placeholder="Repeat your password" required autocomplete="new-password" oninput="checkMatch()"/>
+          </div>
+          <div class="strength-label" id="matchLabel"></div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">
+          <i class="fas fa-user-plus"></i> Create Free Account
+        </button>
+        <div class="terms">
+          By signing up, you agree to our <a href="#">Terms of Service</a> & <a href="#">Privacy Policy</a>
+        </div>
+      </form>
+      <div class="auth-footer">Already have an account? <a href="/login">Sign in</a></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+function checkStrength(pw) {
+  let score = 0;
+  if (pw.length >= 6) score++;
+  if (pw.length >= 10) score++;
+  if (/[A-Z]/.test(pw) && /[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  const bar = document.getElementById('strengthBar');
+  const lbl = document.getElementById('strengthLabel');
+  const configs = [
+    {w:'25%', bg:'#F87171', txt:'Weak'},
+    {w:'50%', bg:'#FBBF24', txt:'Fair'},
+    {w:'75%', bg:'#34D399', txt:'Good'},
+    {w:'100%', bg:'#10B981', txt:'Strong 💪'}
+  ];
+  const c = configs[score - 1] || {w:'0', bg:'transparent', txt:'Enter a password'};
+  bar.style.width = c.w; bar.style.background = c.bg;
+  lbl.textContent = c.txt; lbl.style.color = c.bg;
+}
+function checkMatch() {
+  const lbl = document.getElementById('matchLabel');
+  const match = document.getElementById('pw1').value === document.getElementById('pw2').value;
+  lbl.textContent = match ? '✓ Passwords match' : '✗ Passwords do not match';
+  lbl.style.color = match ? 'var(--teal)' : 'var(--red)';
+}
+</script>
+{% endblock %}
